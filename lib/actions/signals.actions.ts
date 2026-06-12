@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { signals } from "@/lib/db/schema";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql, count } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export type SignalStatus = "running" | "hit_tp" | "hit_sl" | "cancelled";
@@ -18,30 +18,27 @@ export async function getSignals(filters?: {
     throw new Error("Unauthorized");
   }
 
-  const result = await db
-    .select()
-    .from(signals)
-    .where(eq(signals.userId, session.user.id))
-    .orderBy(desc(signals.signalDate));
-
-  let filteredResults = result;
+  // Fix: use SQL WHERE instead of fetching all rows and filtering in JS
+  const conditions = [eq(signals.userId, session.user.id)];
 
   if (filters?.status && filters.status !== "all") {
-    filteredResults = filteredResults.filter(
-      (signal) => signal.status === filters.status
-    );
+    conditions.push(eq(signals.status, filters.status));
   }
 
   if (filters?.search) {
-    const searchLower = filters.search.toLowerCase();
-    filteredResults = filteredResults.filter(
-      (signal) =>
-        signal.pair.toLowerCase().includes(searchLower) ||
-        signal.analysis?.toLowerCase().includes(searchLower)
+    conditions.push(
+      or(
+        ilike(signals.pair, `%${filters.search}%`),
+        ilike(signals.analysis, `%${filters.search}%`)
+      )!
     );
   }
 
-  return filteredResults;
+  return db
+    .select()
+    .from(signals)
+    .where(and(...conditions))
+    .orderBy(desc(signals.signalDate));
 }
 
 export async function getSignalById(signalId: string) {
@@ -162,46 +159,33 @@ export async function getSignalStats() {
     throw new Error("Unauthorized");
   }
 
-  const allSignals = await db
-    .select()
+  // Fix: use SQL aggregations instead of fetching all rows to JS
+  const [stats] = await db
+    .select({
+      totalSignals: count(),
+      runningSignals: sql<number>`COUNT(*) FILTER (WHERE ${signals.status} = 'running')`,
+      hitTpSignals: sql<number>`COUNT(*) FILTER (WHERE ${signals.status} = 'hit_tp')`,
+      hitSlSignals: sql<number>`COUNT(*) FILTER (WHERE ${signals.status} = 'hit_sl')`,
+      cancelledSignals: sql<number>`COUNT(*) FILTER (WHERE ${signals.status} = 'cancelled')`,
+      completedSignals: sql<number>`COUNT(*) FILTER (WHERE ${signals.status} IN ('hit_tp', 'hit_sl'))`,
+      totalProfitLoss: sql<number>`COALESCE(SUM(${signals.profitLoss}::numeric), 0)`,
+      averageRR: sql<number>`COALESCE(AVG(CASE WHEN ${signals.status} IN ('hit_tp', 'hit_sl') THEN ${signals.rrAchieved}::numeric END), 0)`,
+    })
     .from(signals)
     .where(eq(signals.userId, session.user.id));
 
-  const totalSignals = allSignals.length;
-  const runningSignals = allSignals.filter((signal) => signal.status === "running").length;
-  const hitTpSignals = allSignals.filter((signal) => signal.status === "hit_tp").length;
-  const hitSlSignals = allSignals.filter((signal) => signal.status === "hit_sl").length;
-  const cancelledSignals = allSignals.filter(
-    (signal) => signal.status === "cancelled"
-  ).length;
-
-  const completedSignals = allSignals.filter(
-    (signal) => signal.status === "hit_tp" || signal.status === "hit_sl"
-  );
-  const winRate =
-    completedSignals.length > 0
-      ? (hitTpSignals / completedSignals.length) * 100
-      : 0;
-
-  const totalProfitLoss = allSignals.reduce((sum, signal) => {
-    return sum + (signal.profitLoss ? parseFloat(signal.profitLoss) : 0);
-  }, 0);
-
-  const averageRR =
-    completedSignals.length > 0
-      ? completedSignals.reduce((sum, signal) => {
-          return sum + (signal.rrAchieved ? parseFloat(signal.rrAchieved) : 0);
-        }, 0) / completedSignals.length
-      : 0;
+  const hitTp = Number(stats.hitTpSignals);
+  const completed = Number(stats.completedSignals);
+  const winRate = completed > 0 ? (hitTp / completed) * 100 : 0;
 
   return {
-    totalSignals,
-    runningSignals,
-    hitTpSignals,
-    hitSlSignals,
-    cancelledSignals,
+    totalSignals: Number(stats.totalSignals),
+    runningSignals: Number(stats.runningSignals),
+    hitTpSignals: hitTp,
+    hitSlSignals: Number(stats.hitSlSignals),
+    cancelledSignals: Number(stats.cancelledSignals),
     winRate,
-    totalProfitLoss,
-    averageRR,
+    totalProfitLoss: Number(stats.totalProfitLoss),
+    averageRR: Number(stats.averageRR),
   };
 }

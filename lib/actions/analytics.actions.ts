@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { trades } from "@/lib/db/schema";
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lte, sql, count, sum, avg } from "drizzle-orm";
 
 export interface AnalyticsData {
   performanceByPair: Array<{
@@ -42,122 +42,115 @@ export async function getAnalytics(filters?: {
     throw new Error("Unauthorized");
   }
 
-  // Build where conditions
   const conditions = [eq(trades.userId, session.user.id)];
 
   if (filters?.startDate) {
     conditions.push(gte(trades.tradeDate, filters.startDate));
   }
-
   if (filters?.endDate) {
     conditions.push(lte(trades.tradeDate, filters.endDate));
   }
-
   if (filters?.pair) {
     conditions.push(eq(trades.pair, filters.pair));
   }
-
   if (filters?.marketType) {
     conditions.push(
       eq(trades.marketType, filters.marketType as "crypto_futures" | "crypto_spot" | "saham")
     );
   }
 
-  // Get all trades with filters
-  const allTrades = await db
-    .select()
-    .from(trades)
-    .where(and(...conditions))
-    .orderBy(trades.tradeDate);
+  const baseWhere = and(...conditions);
 
-  // Calculate performance by pair
-  const pairMap = new Map<
-    string,
-    {
-      totalTrades: number;
-      wins: number;
-      losses: number;
-      totalPL: number;
-      totalRR: number;
-    }
-  >();
+  // Run all aggregation queries in parallel
+  const [perfByPair, plRows, distributionRows, freqRows] = await Promise.all([
+    // Performance by pair — grouped in SQL
+    db
+      .select({
+        pair: trades.pair,
+        totalTrades: count(),
+        wins: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} = 'win')`,
+        losses: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} = 'loss')`,
+        closed: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} IS NOT NULL)`,
+        totalPL: sql<number>`COALESCE(SUM(${trades.profitLoss}::numeric) FILTER (WHERE ${trades.result} IS NOT NULL), 0)`,
+        avgRR: sql<number>`COALESCE(AVG(${trades.rrRatio}::numeric), 0)`,
+      })
+      .from(trades)
+      .where(baseWhere)
+      .groupBy(trades.pair),
 
-  allTrades.forEach((trade) => {
-    const existing = pairMap.get(trade.pair) || {
-      totalTrades: 0,
-      wins: 0,
-      losses: 0,
-      totalPL: 0,
-      totalRR: 0,
-    };
+    // P&L over time — only closed trades, ordered by date for cumulative calc
+    db
+      .select({
+        date: sql<string>`${trades.tradeDate}::date::text`,
+        tradePL: sql<number>`${trades.profitLoss}::numeric`,
+      })
+      .from(trades)
+      .where(and(baseWhere, sql`${trades.result} IS NOT NULL`))
+      .orderBy(trades.tradeDate),
 
-    existing.totalTrades++;
-    existing.totalRR += parseFloat(trade.rrRatio);
+    // Win/loss distribution — single aggregate row
+    db
+      .select({
+        wins: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} = 'win')`,
+        losses: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} = 'loss')`,
+        breakeven: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} = 'breakeven')`,
+      })
+      .from(trades)
+      .where(baseWhere),
 
-    if (trade.result === "win") existing.wins++;
-    if (trade.result === "loss") existing.losses++;
-    if (trade.profitLoss) {
-      existing.totalPL += parseFloat(trade.profitLoss);
-    }
+    // Trade frequency by month — grouped in SQL
+    db
+      .select({
+        period: sql<string>`TO_CHAR(${trades.tradeDate}, 'YYYY-MM')`,
+        count: count(),
+      })
+      .from(trades)
+      .where(baseWhere)
+      .groupBy(sql`TO_CHAR(${trades.tradeDate}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${trades.tradeDate}, 'YYYY-MM')`),
+  ]);
 
-    pairMap.set(trade.pair, existing);
-  });
-
-  const performanceByPair = Array.from(pairMap.entries()).map(
-    ([pair, stats]) => ({
-      pair,
-      totalTrades: stats.totalTrades,
-      wins: stats.wins,
-      losses: stats.losses,
-      winRate:
-        stats.wins + stats.losses > 0
-          ? (stats.wins / (stats.wins + stats.losses)) * 100
-          : 0,
-      totalPL: stats.totalPL,
-      avgRR: stats.totalTrades > 0 ? stats.totalRR / stats.totalTrades : 0,
-    })
-  );
-
-  // Calculate P&L over time (cumulative)
-  const closedTrades = allTrades.filter((t) => t.result !== null);
-  let cumulative = 0;
-  const plOverTime = closedTrades.map((trade) => {
-    const tradePL = trade.profitLoss ? parseFloat(trade.profitLoss) : 0;
-    cumulative += tradePL;
+  // Map pair performance
+  const performanceByPair = perfByPair.map((row) => {
+    const closed = Number(row.closed);
+    const wins = Number(row.wins);
     return {
-      date: trade.tradeDate.toISOString().split("T")[0],
-      cumulativePL: cumulative,
-      tradePL,
+      pair: row.pair,
+      totalTrades: Number(row.totalTrades),
+      wins,
+      losses: Number(row.losses),
+      winRate: closed > 0 ? (wins / closed) * 100 : 0,
+      totalPL: Number(row.totalPL),
+      avgRR: Number(row.avgRR),
     };
   });
 
-  // Win/Loss distribution
-  const winLossDistribution = {
-    wins: allTrades.filter((t) => t.result === "win").length,
-    losses: allTrades.filter((t) => t.result === "loss").length,
-    breakeven: allTrades.filter((t) => t.result === "breakeven").length,
-  };
-
-  // Trade frequency by month
-  const frequencyMap = new Map<string, number>();
-  allTrades.forEach((trade) => {
-    const month = trade.tradeDate.toISOString().substring(0, 7); // YYYY-MM
-    frequencyMap.set(month, (frequencyMap.get(month) || 0) + 1);
+  // Build cumulative P&L (requires sequential processing — minimal JS)
+  let cumulative = 0;
+  const plOverTime = plRows.map((row) => {
+    const tradePL = Number(row.tradePL ?? 0);
+    cumulative += tradePL;
+    return { date: row.date, cumulativePL: cumulative, tradePL };
   });
 
-  const tradeFrequency = Array.from(frequencyMap.entries())
-    .map(([period, count]) => ({ period, count }))
-    .sort((a, b) => a.period.localeCompare(b.period));
-
-  return {
-    performanceByPair,
-    plOverTime,
-    winLossDistribution,
-    tradeFrequency,
+  // Win/loss distribution
+  const dist = distributionRows[0] ?? { wins: 0, losses: 0, breakeven: 0 };
+  const winLossDistribution = {
+    wins: Number(dist.wins),
+    losses: Number(dist.losses),
+    breakeven: Number(dist.breakeven),
   };
+
+  // Trade frequency
+  const tradeFrequency = freqRows.map((row) => ({
+    period: row.period,
+    count: Number(row.count),
+  }));
+
+  return { performanceByPair, plOverTime, winLossDistribution, tradeFrequency };
 }
 
-// Get unique pairs for filter
+// Get unique pairs for filter dropdown
 export async function getUniquePairs() {
   const session = await auth();
   if (!session?.user?.id) {

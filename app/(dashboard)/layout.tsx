@@ -1,14 +1,14 @@
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { logoutUser } from "@/lib/actions/auth.actions";
+import { getCachedSession } from "@/lib/auth-cache";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const session = await getCachedSession();
 
   if (!session) {
     redirect("/login");

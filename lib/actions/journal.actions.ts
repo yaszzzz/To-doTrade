@@ -3,10 +3,10 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { trades, tags, tradeTags } from "@/lib/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, count, ilike, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-// Get all trades for current user with filters
+// Get all trades for current user with filters (SQL-level filtering)
 export async function getTrades(filters?: {
   result?: "win" | "loss" | "breakeven" | "all";
   search?: string;
@@ -16,7 +16,26 @@ export async function getTrades(filters?: {
     throw new Error("Unauthorized");
   }
 
-  const result = await db
+  const conditions = [eq(trades.userId, session.user.id)];
+
+  // Fix: push result filter into SQL WHERE instead of filtering in JS
+  if (filters?.result && filters.result !== "all") {
+    conditions.push(eq(trades.result, filters.result));
+  }
+
+  // Fix: push search filter into SQL ILIKE instead of filtering in JS
+  if (filters?.search) {
+    const term = `%${filters.search}%`;
+    conditions.push(
+      or(
+        ilike(trades.pair, term),
+        ilike(trades.tradingReason, term),
+        ilike(trades.evaluationNotes, term)
+      )!
+    );
+  }
+
+  return db
     .select({
       trade: trades,
       tags: sql<string[]>`COALESCE(
@@ -27,30 +46,9 @@ export async function getTrades(filters?: {
     .from(trades)
     .leftJoin(tradeTags, eq(trades.id, tradeTags.tradeId))
     .leftJoin(tags, eq(tradeTags.tagId, tags.id))
-    .where(eq(trades.userId, session.user.id))
+    .where(and(...conditions))
     .groupBy(trades.id)
     .orderBy(desc(trades.tradeDate));
-
-  // Apply filters
-  let filteredResults = result;
-
-  if (filters?.result && filters.result !== "all") {
-    filteredResults = filteredResults.filter(
-      (r) => r.trade.result === filters.result
-    );
-  }
-
-  if (filters?.search) {
-    const searchLower = filters.search.toLowerCase();
-    filteredResults = filteredResults.filter(
-      (r) =>
-        r.trade.pair.toLowerCase().includes(searchLower) ||
-        r.trade.tradingReason?.toLowerCase().includes(searchLower) ||
-        r.trade.evaluationNotes?.toLowerCase().includes(searchLower)
-    );
-  }
-
-  return filteredResults;
 }
 
 // Get single trade by ID
@@ -81,6 +79,42 @@ export async function getTradeById(tradeId: string) {
   return result[0];
 }
 
+// Get trade statistics — uses SQL aggregations instead of fetching all rows
+export async function getTradeStats() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const [stats] = await db
+    .select({
+      totalTrades: count(),
+      openTrades: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} IS NULL)`,
+      closedTrades: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} IS NOT NULL)`,
+      winningTrades: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} = 'win')`,
+      losingTrades: sql<number>`COUNT(*) FILTER (WHERE ${trades.result} = 'loss')`,
+      totalProfit: sql<number>`COALESCE(SUM(CASE WHEN ${trades.result} IS NOT NULL THEN ${trades.profitLoss}::numeric ELSE 0 END), 0)`,
+      avgRR: sql<number>`COALESCE(AVG(${trades.rrRatio}::numeric), 0)`,
+    })
+    .from(trades)
+    .where(eq(trades.userId, session.user.id));
+
+  const closed = Number(stats.closedTrades);
+  const winning = Number(stats.winningTrades);
+  const winRate = closed > 0 ? (winning / closed) * 100 : 0;
+
+  return {
+    totalTrades: Number(stats.totalTrades),
+    openTrades: Number(stats.openTrades),
+    closedTrades: closed,
+    winningTrades: winning,
+    losingTrades: Number(stats.losingTrades),
+    winRate,
+    totalProfit: Number(stats.totalProfit),
+    avgRR: Number(stats.avgRR),
+  };
+}
+
 // Create new trade
 export async function createTrade(formData: FormData) {
   const session = await auth();
@@ -100,7 +134,7 @@ export async function createTrade(formData: FormData) {
     const screenshotEntry = formData.get("screenshotEntry") as string;
     const tradingReason = formData.get("tradingReason") as string;
     const psychologyNotes = formData.get("psychologyNotes") as string;
-    const selectedTags = formData.get("tags") as string; // JSON string of tag IDs
+    const selectedTags = formData.get("tags") as string;
 
     // Calculate RR ratio
     const entry = parseFloat(entryPrice);
@@ -110,7 +144,6 @@ export async function createTrade(formData: FormData) {
     const reward = Math.abs(tp - entry);
     const rrRatio = risk > 0 ? (reward / risk).toFixed(2) : "0";
 
-    // Insert trade
     const [newTrade] = await db
       .insert(trades)
       .values({
@@ -131,15 +164,11 @@ export async function createTrade(formData: FormData) {
       })
       .returning();
 
-    // Insert trade tags if any
     if (selectedTags) {
       const tagIds = JSON.parse(selectedTags) as string[];
       if (tagIds.length > 0) {
         await db.insert(tradeTags).values(
-          tagIds.map((tagId) => ({
-            tradeId: newTrade.id,
-            tagId,
-          }))
+          tagIds.map((tagId) => ({ tradeId: newTrade.id, tagId }))
         );
       }
     }
@@ -162,7 +191,6 @@ export async function updateTrade(tradeId: string, formData: FormData) {
   }
 
   try {
-    // Verify ownership
     const existingTrade = await db.query.trades.findFirst({
       where: and(eq(trades.id, tradeId), eq(trades.userId, session.user.id)),
     });
@@ -184,7 +212,6 @@ export async function updateTrade(tradeId: string, formData: FormData) {
     const psychologyNotes = formData.get("psychologyNotes") as string;
     const selectedTags = formData.get("tags") as string;
 
-    // Recalculate RR ratio
     const entry = parseFloat(entryPrice);
     const sl = parseFloat(stopLoss);
     const tp = parseFloat(takeProfit);
@@ -192,7 +219,6 @@ export async function updateTrade(tradeId: string, formData: FormData) {
     const reward = Math.abs(tp - entry);
     const rrRatio = risk > 0 ? (reward / risk).toFixed(2) : "0";
 
-    // Update trade
     await db
       .update(trades)
       .set({
@@ -212,19 +238,12 @@ export async function updateTrade(tradeId: string, formData: FormData) {
       })
       .where(eq(trades.id, tradeId));
 
-    // Update tags
     if (selectedTags) {
-      // Delete existing trade tags
       await db.delete(tradeTags).where(eq(tradeTags.tradeId, tradeId));
-
-      // Insert new tags
       const tagIds = JSON.parse(selectedTags) as string[];
       if (tagIds.length > 0) {
         await db.insert(tradeTags).values(
-          tagIds.map((tagId) => ({
-            tradeId,
-            tagId,
-          }))
+          tagIds.map((tagId) => ({ tradeId, tagId }))
         );
       }
     }
@@ -254,7 +273,6 @@ export async function closeTrade(
   }
 
   try {
-    // Get trade
     const trade = await db.query.trades.findFirst({
       where: and(eq(trades.id, tradeId), eq(trades.userId, session.user.id)),
     });
@@ -267,7 +285,6 @@ export async function closeTrade(
       return { error: "Trade already closed" };
     }
 
-    // Update trade
     await db
       .update(trades)
       .set({
@@ -298,7 +315,6 @@ export async function deleteTrade(tradeId: string) {
   }
 
   try {
-    // Verify ownership
     const trade = await db.query.trades.findFirst({
       where: and(eq(trades.id, tradeId), eq(trades.userId, session.user.id)),
     });
@@ -307,10 +323,7 @@ export async function deleteTrade(tradeId: string) {
       return { error: "Trade not found" };
     }
 
-    // Delete trade tags first (foreign key constraint)
     await db.delete(tradeTags).where(eq(tradeTags.tradeId, tradeId));
-
-    // Delete trade
     await db.delete(trades).where(eq(trades.id, tradeId));
 
     revalidatePath("/journal");
@@ -336,57 +349,11 @@ export async function createTag(name: string) {
       .insert(tags)
       .values({ name })
       .returning();
-    
+
     revalidatePath("/journal");
     return { success: true, tag: newTag };
   } catch (error) {
     console.error("Create tag error:", error);
     return { error: "Failed to create tag" };
   }
-}
-
-// Get trade statistics for current user
-export async function getTradeStats() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const userTrades = await db
-    .select()
-    .from(trades)
-    .where(eq(trades.userId, session.user.id));
-
-  const totalTrades = userTrades.length;
-  const closedTrades = userTrades.filter((t) => t.result !== null);
-  const openTrades = userTrades.filter((t) => t.result === null);
-
-  const winningTrades = closedTrades.filter((t) => t.result === "win");
-  const losingTrades = closedTrades.filter((t) => t.result === "loss");
-
-  const winRate =
-    closedTrades.length > 0
-      ? (winningTrades.length / closedTrades.length) * 100
-      : 0;
-
-  const totalProfit = closedTrades.reduce(
-    (sum, t) => sum + (t.profitLoss ? parseFloat(t.profitLoss) : 0),
-    0
-  );
-
-  const avgRR =
-    userTrades.length > 0
-      ? userTrades.reduce((sum, t) => sum + parseFloat(t.rrRatio), 0) / userTrades.length
-      : 0;
-
-  return {
-    totalTrades,
-    closedTrades: closedTrades.length,
-    openTrades: openTrades.length,
-    winRate,
-    totalProfit,
-    avgRR,
-    winningTrades: winningTrades.length,
-    losingTrades: losingTrades.length,
-  };
 }

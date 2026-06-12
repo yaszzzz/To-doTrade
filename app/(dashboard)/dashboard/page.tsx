@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-cache";
 import { getTradeStats, getTrades } from "@/lib/actions/journal.actions";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const session = await auth();
+  const session = await getCachedSession();
   const stats = await getTradeStats();
   const recentTrades = await getTrades();
   const recentFive = recentTrades.slice(0, 5);
@@ -16,7 +16,7 @@ export default async function DashboardPage() {
           Dashboard
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-2">
-          Welcome back, {session?.user?.name}! Here's your trading overview.
+          Welcome back, {session?.user?.name}! {"Here's your trading overview."}
         </p>
       </div>
 
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {recentFive.map(({ trade, tags }) => (
+            {recentFive.map(({ trade }) => (
               <Link
                 key={trade.id}
                 href={`/journal/${trade.id}`}

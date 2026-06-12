@@ -55,55 +55,59 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // If signing in with Google
       if (account?.provider === "google") {
-        const adminEmails = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim()) || [];
-        
-        // Only allow Google sign-in for admin emails
+        const adminEmails =
+          process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim()) || [];
+
         if (!adminEmails.includes(user.email!)) {
           return false;
         }
 
-        // Check if user exists
         const existingUser = await db.query.users.findFirst({
           where: eq(users.email, user.email!),
         });
 
-        // If user doesn't exist, create them with admin role
         if (!existingUser) {
           await db.insert(users).values({
             email: user.email!,
             name: user.name || "Admin",
             avatar: user.image,
             role: "admin",
-            password: null, // OAuth users don't have passwords
+            password: null,
           });
         } else if (existingUser.role !== "admin") {
-          // If user exists but isn't admin, upgrade them
-          await db.update(users)
+          await db
+            .update(users)
             .set({ role: "admin" })
             .where(eq(users.id, existingUser.id));
         }
       }
-      
+
       return true;
     },
+
+    // FIX: Only query DB when the user first signs in (user object is present).
+    // On subsequent requests, role and id are already in the token — no DB hit.
     async jwt({ token, user }) {
-      const email = user?.email || token.email;
-
-      if (email) {
-        const dbUser = await db.query.users.findFirst({
-          where: eq(users.email, email),
-        });
-
-        if (dbUser) {
-          token.role = dbUser.role;
-          token.id = dbUser.id;
+      if (user) {
+        // First sign-in: persist role + id into the JWT
+        if (user.role) {
+          token.role = user.role;
+          token.id = user.id;
+        } else {
+          // Google OAuth: role not on user object yet — fetch once
+          const dbUser = await db.query.users.findFirst({
+            where: eq(users.email, user.email!),
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.id = dbUser.id;
+          }
         }
       }
-
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role as string;
