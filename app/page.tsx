@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PublicVideoBackground } from "@/components/public/public-video-background";
 import { PublicNav } from "@/components/public/public-nav";
 
 export default function HomePage() {

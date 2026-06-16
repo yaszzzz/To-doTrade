@@ -12,11 +12,9 @@ export function PublicNav() {
           className="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200"
         >
           <div className="w-6 h-6">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-            </svg>
+           <Image src="/Image/logo.webp" alt="Axell Trade Logo" width={24} height={24} />
           </div>
-          <span className="text-base font-medium">ToDoTrade</span>
+          <span className="text-base font-medium">Axell Trade</span>
         </Link>
 
         {/* Navigation Links - Center */}
@@ -47,7 +45,7 @@ export function PublicNav() {
             href="/login"
             className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors"
           >
-            Sign in
+            Login
           </Link>
         </div>
       </div>
