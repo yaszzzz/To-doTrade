@@ -43,12 +43,10 @@ export default async function HomePage() {
           <nav className="flex h-[72px] items-center justify-between">
             <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
               <Image 
-                src="/logo.webp" 
+                src="/Image/logo.webp" 
                 alt="AxellTrade Logo" 
                 width={40}
                 height={40}
-                priority
-                unoptimized
                 className="h-10 w-10"
               />
               <span className="text-xl font-bold tracking-tight text-[#1E293B]">AxellTrade</span>
@@ -123,7 +121,7 @@ export default async function HomePage() {
                 <CardContent className="p-4">
                   <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#F8FAFC]">
                     <Image
-                      src="/fotosaya.webp"
+                      src="/Image/fotosaya.webp"
                       alt="Axell - AxellTrade Founder"
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
