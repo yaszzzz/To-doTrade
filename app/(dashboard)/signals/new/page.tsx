@@ -7,20 +7,20 @@ export default function NewSignalPage() {
       <div>
         <Link
           href="/signals"
-          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="text-sm text-[#1E4ED8] hover:text-[#1D4ED8] font-semibold transition-colors"
         >
           ← Back to Signals
         </Link>
-        <h1 className="mt-4 text-3xl font-bold text-slate-900 dark:text-white">
+        <h1 className="mt-6 text-3xl font-bold text-[#1E293B]">
           New Trading Signal
         </h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
+        <p className="mt-2 text-[#64748B] font-medium">
           Document your entry plan, risk setup, and chart analysis before the
           signal plays out.
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <SignalForm />
       </div>
     </div>

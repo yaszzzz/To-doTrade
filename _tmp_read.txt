@@ -1,7 +1,7 @@
 
 "use server";
 
-import { getCachedSession } from "@/lib/auth-cache";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { backtestStrategies, backtestTrades } from "@/lib/db/schema";
 import { and, desc, eq } from "drizzle-orm";
@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 export type BacktestResult = "win" | "loss" | "breakeven";
 
 export async function getBacktestStrategies() {
-  const session = await getCachedSession();
+  const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -25,7 +25,7 @@ export async function getBacktestStrategies() {
 }
 
 export async function getBacktestStrategyById(strategyId: string) {
-  const session = await getCachedSession();
+  const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -50,7 +50,7 @@ export async function getBacktestStrategyById(strategyId: string) {
 }
 
 export async function createBacktestStrategy(formData: FormData) {
-  const session = await getCachedSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -88,7 +88,7 @@ export async function createBacktestStrategy(formData: FormData) {
 }
 
 export async function addBacktestTrade(strategyId: string, formData: FormData) {
-  const session = await getCachedSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -139,7 +139,7 @@ export async function addBacktestTrade(strategyId: string, formData: FormData) {
 }
 
 export async function deleteBacktestTrade(strategyId: string, tradeId: string) {
-  const session = await getCachedSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }

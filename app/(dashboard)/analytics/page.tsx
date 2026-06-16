@@ -31,25 +31,27 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-[#1E293B]">
           Analytics
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 mt-2">
-          Analyze your trading performance and identify patterns
+        <p className="text-[#64748B] mt-2 font-medium">
+          Analyze your trading performance and identify patterns.
         </p>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
-        <form className="flex flex-wrap gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+      {/* Filters */}
+      <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+        <form className="flex flex-col gap-4 md:flex-row md:items-end">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-[#1E293B] mb-2">
               Pair
             </label>
             <select
               name="pair"
               defaultValue={selectedPair}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+              className="w-full h-11 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] transition-all"
             >
               <option value="all">All Pairs</option>
               {pairs.map((pair) => (
@@ -60,14 +62,14 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-[#1E293B] mb-2">
               Market Type
             </label>
             <select
               name="marketType"
               defaultValue={selectedMarket}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+              className="w-full h-11 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] transition-all"
             >
               <option value="all">All Markets</option>
               <option value="crypto_futures">Crypto Futures</option>
@@ -76,49 +78,64 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
             </select>
           </div>
 
-          <div className="flex items-end">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
-              Apply Filters
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="px-8 h-11 bg-[#1E293B] hover:bg-[#0F172A] text-white font-bold rounded-xl transition-all hover:scale-[1.02]"
+          >
+            Apply Filters
+          </button>
         </form>
       </div>
 
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Total Trades" value={stats.totalTrades.toString()} />
+        <StatCard 
+          title="Total Trades" 
+          value={stats.totalTrades.toString()} 
+          icon="📊"
+        />
         <StatCard
           title="Win Rate"
           value={`${stats.winRate.toFixed(1)}%`}
-          valueColor={stats.winRate >= 50 ? "text-green-600" : "text-red-600"}
+          icon="🎯"
+          valueColor={stats.winRate >= 50 ? "text-[#10B981]" : "text-[#EF4444]"}
         />
         <StatCard
           title="Total P&L"
           value={formatCurrency(stats.totalProfit)}
+          icon="💰"
           valueColor={
             stats.totalProfit > 0
-              ? "text-green-600"
+              ? "text-[#10B981]"
               : stats.totalProfit < 0
-                ? "text-red-600"
-                : "text-slate-900 dark:text-white"
+                ? "text-[#EF4444]"
+                : "text-[#1E293B]"
           }
         />
-        <StatCard title="Avg RR" value={`${stats.avgRR.toFixed(2)}:1`} />
+        <StatCard 
+          title="Avg RR" 
+          value={`${stats.avgRR.toFixed(2)}:1`} 
+          icon="⚖️"
+        />
       </div>
 
-      <AnalyticsCharts analytics={analytics} />
+      {/* Charts */}
+      <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+        <AnalyticsCharts analytics={analytics} />
+      </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-          Performance by Pair
-        </h3>
+      {/* Performance Table */}
+      <div className="bg-white rounded-[20px] border border-[#E2E8F0] shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div className="p-6 border-b border-[#E2E8F0]">
+          <h3 className="text-xl font-bold text-[#1E293B]">
+            Performance by Pair
+          </h3>
+        </div>
         {analytics.performanceByPair.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800">
+                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
                   <TableHead align="left">Pair</TableHead>
                   <TableHead>Trades</TableHead>
                   <TableHead>Win Rate</TableHead>
@@ -126,38 +143,38 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
                   <TableHead>Avg RR</TableHead>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#E2E8F0]">
                 {analytics.performanceByPair.map((item) => (
                   <tr
                     key={item.pair}
-                    className="border-b border-slate-100 dark:border-slate-800/50"
+                    className="hover:bg-[#F8FAFC] transition-colors"
                   >
-                    <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
+                    <td className="py-4 px-6 font-bold text-[#1E293B]">
                       {item.pair}
                     </td>
-                    <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="py-4 px-6 text-right text-[#64748B] font-medium">
                       {item.totalTrades}
                     </td>
                     <td
-                      className={`py-3 px-4 text-right font-medium ${
-                        item.winRate >= 50 ? "text-green-600" : "text-red-600"
+                      className={`py-4 px-6 text-right font-bold ${
+                        item.winRate >= 50 ? "text-[#10B981]" : "text-[#EF4444]"
                       }`}
                     >
                       {item.winRate.toFixed(1)}%
                     </td>
                     <td
-                      className={`py-3 px-4 text-right font-medium ${
+                      className={`py-4 px-6 text-right font-bold ${
                         item.totalPL > 0
-                          ? "text-green-600"
+                          ? "text-[#10B981]"
                           : item.totalPL < 0
-                            ? "text-red-600"
-                            : "text-slate-600"
+                            ? "text-[#EF4444]"
+                            : "text-[#1E293B]"
                       }`}
                     >
                       {item.totalPL > 0 ? "+" : ""}
                       {formatCurrency(item.totalPL)}
                     </td>
-                    <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="py-4 px-6 text-right text-[#1E293B] font-bold">
                       {item.avgRR.toFixed(2)}:1
                     </td>
                   </tr>
@@ -166,7 +183,11 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
             </table>
           </div>
         ) : (
-          <div className="text-center py-8 text-slate-500">No trades yet</div>
+          <div className="text-center py-16">
+            <p className="text-5xl mb-4">📊</p>
+            <h3 className="text-lg font-bold text-[#1E293B]">No trades yet</h3>
+            <p className="text-[#64748B] mt-2 font-medium">Start journaling your trades to see performance analytics.</p>
+          </div>
         )}
       </div>
     </div>
@@ -176,15 +197,20 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
 function StatCard({
   title,
   value,
-  valueColor = "text-slate-900 dark:text-white",
+  icon,
+  valueColor = "text-[#1E293B]",
 }: {
   title: string;
   value: string;
+  icon: string;
   valueColor?: string;
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-      <h3 className="text-slate-600 dark:text-slate-400 text-sm mb-2">
+    <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)] hover:-translate-y-0.5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-2xl">{icon}</span>
+      </div>
+      <h3 className="text-[#64748B] text-sm font-medium mb-1">
         {title}
       </h3>
       <p className={`text-2xl font-bold ${valueColor}`}>{value}</p>
@@ -201,7 +227,7 @@ function TableHead({
 }) {
   return (
     <th
-      className={`py-3 px-4 text-slate-600 dark:text-slate-400 font-medium ${
+      className={`py-4 px-6 text-xs font-bold text-[#64748B] uppercase tracking-wider ${
         align === "left" ? "text-left" : "text-right"
       }`}
     >

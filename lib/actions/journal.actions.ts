@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-cache";
 import { db } from "@/lib/db";
 import { trades, tags, tradeTags } from "@/lib/db/schema";
 import { eq, and, desc, sql, count, ilike, or } from "drizzle-orm";
@@ -11,7 +11,7 @@ export async function getTrades(filters?: {
   result?: "win" | "loss" | "breakeven" | "all";
   search?: string;
 }) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -53,7 +53,7 @@ export async function getTrades(filters?: {
 
 // Get single trade by ID
 export async function getTradeById(tradeId: string) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -73,7 +73,7 @@ export async function getTradeById(tradeId: string) {
     .groupBy(trades.id);
 
   if (result.length === 0) {
-    throw new Error("Trade not found");
+    return null;
   }
 
   return result[0];
@@ -81,7 +81,7 @@ export async function getTradeById(tradeId: string) {
 
 // Get trade statistics — uses SQL aggregations instead of fetching all rows
 export async function getTradeStats() {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -117,7 +117,7 @@ export async function getTradeStats() {
 
 // Create new trade
 export async function createTrade(formData: FormData) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -185,7 +185,7 @@ export async function createTrade(formData: FormData) {
 
 // Update existing trade
 export async function updateTrade(tradeId: string, formData: FormData) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -267,7 +267,7 @@ export async function closeTrade(
   screenshotExit?: string,
   evaluationNotes?: string
 ) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -309,7 +309,7 @@ export async function closeTrade(
 
 // Delete trade
 export async function deleteTrade(tradeId: string) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }

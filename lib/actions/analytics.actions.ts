@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-cache";
 import { db } from "@/lib/db";
 import { trades } from "@/lib/db/schema";
 import { eq, and, gte, lte, sql, count, sum, avg } from "drizzle-orm";
@@ -37,7 +37,7 @@ export async function getAnalytics(filters?: {
   pair?: string;
   marketType?: string;
 }): Promise<AnalyticsData> {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -152,7 +152,7 @@ export async function getAnalytics(filters?: {
 
 // Get unique pairs for filter dropdown
 export async function getUniquePairs() {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }

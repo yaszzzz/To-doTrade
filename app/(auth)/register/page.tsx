@@ -36,29 +36,43 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-3 mb-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/logo.png" 
+              alt="AxellTrade Logo" 
+              className="h-12 w-12"
+            />
+            <span className="text-2xl font-bold text-[#1E293B]">AxellTrade</span>
+          </Link>
+        </div>
+
+        {/* Register Card */}
+        <div className="bg-white rounded-[20px] border border-[#E2E8F0] shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-[#1E293B] mb-2">
               Create Account
             </h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              Start your trading journey with ToDoTrade
+            <p className="text-[#64748B]">
+              Start your trading journey with AxellTrade
             </p>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="mb-6 p-4 bg-[#FEE2E2] border border-[#EF4444]/20 rounded-xl">
+              <p className="text-sm text-[#EF4444] font-medium">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-semibold text-[#1E293B] mb-2"
               >
                 Full Name
               </label>
@@ -68,7 +82,7 @@ export default function RegisterPage() {
                 type="text"
                 required
                 disabled={loading}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50"
+                className="w-full h-12 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="John Doe"
               />
             </div>
@@ -76,7 +90,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-semibold text-[#1E293B] mb-2"
               >
                 Email
               </label>
@@ -86,7 +100,7 @@ export default function RegisterPage() {
                 type="email"
                 required
                 disabled={loading}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50"
+                className="w-full h-12 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="you@example.com"
               />
             </div>
@@ -94,7 +108,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-semibold text-[#1E293B] mb-2"
               >
                 Password
               </label>
@@ -105,15 +119,18 @@ export default function RegisterPage() {
                 required
                 minLength={8}
                 disabled={loading}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50"
+                className="w-full h-12 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="••••••••"
               />
+              <p className="mt-1.5 text-xs text-[#64748B]">
+                Minimum 8 characters
+              </p>
             </div>
 
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-semibold text-[#1E293B] mb-2"
               >
                 Confirm Password
               </label>
@@ -124,7 +141,7 @@ export default function RegisterPage() {
                 required
                 minLength={8}
                 disabled={loading}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white disabled:opacity-50"
+                className="w-full h-12 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -132,21 +149,31 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-12 bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-semibold rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg hover:shadow-xl"
             >
               {loading ? "Creating account..." : "Sign Up"}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-8 text-center text-sm text-[#64748B]">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
+              className="text-[#1E4ED8] hover:text-[#1D4ED8] font-semibold transition-colors"
             >
               Sign in
             </Link>
           </p>
+        </div>
+
+        {/* Back to Home */}
+        <div className="mt-6 text-center">
+          <Link
+            href="/"
+            className="text-sm text-[#64748B] hover:text-[#1E293B] font-medium transition-colors"
+          >
+            ← Back to Home
+          </Link>
         </div>
       </div>
     </div>

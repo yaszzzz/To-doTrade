@@ -16,11 +16,11 @@ const statusLabels: Record<SignalStatus, string> = {
   cancelled: "Cancelled",
 };
 
-const statusClasses: Record<SignalStatus, string> = {
-  running: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  hit_tp: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  hit_sl: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
-  cancelled: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+const statusConfig: Record<SignalStatus, { bg: string; text: string; icon: string }> = {
+  running: { bg: "bg-[#DBEAFE]", text: "text-[#1E4ED8]", icon: "⏱️" },
+  hit_tp: { bg: "bg-[#D1FAE5]", text: "text-[#10B981]", icon: "✅" },
+  hit_sl: { bg: "bg-[#FEE2E2]", text: "text-[#EF4444]", icon: "❌" },
+  cancelled: { bg: "bg-[#F3F4F6]", text: "text-[#64748B]", icon: "🚫" },
 };
 
 export default async function SignalsPage({ searchParams }: SignalsPageProps) {
@@ -35,49 +35,62 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-[#1E293B]">
             Trading Signals
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
+          <p className="text-[#64748B] mt-2 font-medium">
             Track signal ideas from entry plan to final outcome.
           </p>
         </div>
 
         <Link
           href="/signals/new"
-          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+          className="inline-flex items-center justify-center px-8 py-3 rounded-xl bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-bold transition-all hover:scale-[1.02] shadow-lg hover:shadow-xl"
         >
           New Signal
         </Link>
       </div>
 
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Total Signals" value={stats.totalSignals.toString()} />
-        <StatCard title="Running" value={stats.runningSignals.toString()} />
+        <StatCard 
+          title="Total Signals" 
+          value={stats.totalSignals.toString()} 
+          icon="📊"
+        />
+        <StatCard 
+          title="Running" 
+          value={stats.runningSignals.toString()}
+          icon="⏱️"
+        />
         <StatCard
           title="Win Rate"
           value={`${stats.winRate.toFixed(1)}%`}
-          valueColor={stats.winRate >= 50 ? "text-green-600" : "text-red-600"}
+          icon="🎯"
+          valueColor={stats.winRate >= 50 ? "text-[#10B981]" : "text-[#EF4444]"}
         />
         <StatCard
           title="Total P&L"
           value={formatCurrency(stats.totalProfitLoss)}
+          icon="💰"
           valueColor={
             stats.totalProfitLoss > 0
-              ? "text-green-600"
+              ? "text-[#10B981]"
               : stats.totalProfitLoss < 0
-                ? "text-red-600"
-                : "text-slate-900 dark:text-white"
+                ? "text-[#EF4444]"
+                : "text-[#1E293B]"
           }
         />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+      {/* Search & Filter Form */}
+      <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
         <form className="flex flex-col gap-4 md:flex-row md:items-end">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-semibold text-[#1E293B] mb-2">
               Search
             </label>
             <input
@@ -85,18 +98,18 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
               name="search"
               defaultValue={search}
               placeholder="Search pair or analysis..."
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+              className="w-full h-11 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-semibold text-[#1E293B] mb-2">
               Status
             </label>
             <select
               name="status"
               defaultValue={selectedStatus}
-              className="w-full md:w-44 px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+              className="w-full md:w-48 h-11 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] transition-all"
             >
               <option value="all">All Status</option>
               <option value="running">Running</option>
@@ -108,19 +121,20 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
 
           <button
             type="submit"
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 font-medium rounded-lg transition-colors"
+            className="px-8 h-11 bg-[#1E293B] hover:bg-[#0F172A] text-white font-bold rounded-xl transition-all hover:scale-[1.02]"
           >
             Apply
           </button>
         </form>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      {/* Signals Table */}
+      <div className="bg-white rounded-[20px] border border-[#E2E8F0] shadow-[0_4px_20px_rgba(0,0,0,0.08)] overflow-hidden">
         {signals.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800">
+                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
                   <TableHead align="left">Pair</TableHead>
                   <TableHead>Entry</TableHead>
                   <TableHead>SL</TableHead>
@@ -131,63 +145,64 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
                   <TableHead>Action</TableHead>
                 </tr>
               </thead>
-              <tbody>
-                {signals.map((signal) => (
-                  <tr
-                    key={signal.id}
-                    className="border-b border-slate-100 dark:border-slate-800/50"
-                  >
-                    <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                      {signal.pair}
-                    </td>
-                    <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">
-                      {signal.entry}
-                    </td>
-                    <td className="py-3 px-4 text-right text-red-600">
-                      {signal.stopLoss}
-                    </td>
-                    <td className="py-3 px-4 text-right text-green-600">
-                      {signal.takeProfit}
-                    </td>
-                    <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">
-                      {signal.riskReward}:1
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <span
-                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                          statusClasses[signal.status]
-                        }`}
-                      >
-                        {statusLabels[signal.status]}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">
-                      {formatDate(signal.signalDate)}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <Link
-                        href={`/signals/${signal.id}`}
-                        className="text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-[#E2E8F0]">
+                {signals.map((signal) => {
+                  const config = statusConfig[signal.status];
+                  return (
+                    <tr
+                      key={signal.id}
+                      className="hover:bg-[#F8FAFC] transition-colors"
+                    >
+                      <td className="py-4 px-6 font-bold text-[#1E293B]">
+                        {signal.pair}
+                      </td>
+                      <td className="py-4 px-6 text-right text-[#64748B] font-medium">
+                        {signal.entry}
+                      </td>
+                      <td className="py-4 px-6 text-right font-semibold text-[#EF4444]">
+                        {signal.stopLoss}
+                      </td>
+                      <td className="py-4 px-6 text-right font-semibold text-[#10B981]">
+                        {signal.takeProfit}
+                      </td>
+                      <td className="py-4 px-6 text-right font-bold text-[#1E293B]">
+                        {signal.riskReward}:1
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${config.bg} ${config.text}`}>
+                          <span>{config.icon}</span>
+                          {statusLabels[signal.status]}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-right text-[#64748B] font-medium">
+                        {formatDate(signal.signalDate)}
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <Link
+                          href={`/signals/${signal.id}`}
+                          className="text-[#1E4ED8] hover:text-[#1D4ED8] font-bold transition-colors"
+                        >
+                          View →
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         ) : (
-          <div className="text-center py-14">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <div className="text-center py-16">
+            <p className="text-5xl mb-4">📭</p>
+            <h3 className="text-lg font-bold text-[#1E293B]">
               No signals found
             </h3>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-[#64748B] mt-2 font-medium">
               Create your first signal to start tracking trade ideas.
             </p>
             <Link
               href="/signals/new"
-              className="inline-flex mt-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+              className="inline-flex mt-6 px-8 py-3 rounded-xl bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-bold transition-all hover:scale-[1.02] shadow-lg"
             >
               New Signal
             </Link>
@@ -201,15 +216,20 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
 function StatCard({
   title,
   value,
-  valueColor = "text-slate-900 dark:text-white",
+  icon,
+  valueColor = "text-[#1E293B]",
 }: {
   title: string;
   value: string;
+  icon: string;
   valueColor?: string;
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-      <h3 className="text-slate-600 dark:text-slate-400 text-sm mb-2">
+    <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all hover:shadow-[0_10px_30px_rgba(0,0,0,0.12)] hover:-translate-y-0.5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-2xl">{icon}</span>
+      </div>
+      <h3 className="text-[#64748B] text-sm font-medium mb-1">
         {title}
       </h3>
       <p className={`text-2xl font-bold ${valueColor}`}>{value}</p>
@@ -226,7 +246,7 @@ function TableHead({
 }) {
   return (
     <th
-      className={`py-3 px-4 text-slate-600 dark:text-slate-400 font-medium ${
+      className={`py-4 px-6 text-xs font-bold text-[#64748B] uppercase tracking-wider ${
         align === "left" ? "text-left" : "text-right"
       }`}
     >

@@ -1,16 +1,22 @@
 import { getTradeById, closeTrade, deleteTrade } from "@/lib/actions/journal.actions";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 
 export default async function TradeDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
-  const { trade, tags } = await getTradeById(id);
+  const { id } = await params;
+  const tradeData = await getTradeById(id);
+
+  if (!tradeData) {
+    notFound();
+  }
+
+  const { trade, tags } = tradeData;
 
   async function handleCloseTrade(formData: FormData) {
     "use server";
@@ -32,31 +38,31 @@ export default async function TradeDetailPage({
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <Link
             href="/journal"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-[#1E4ED8] hover:text-[#1D4ED8] font-semibold transition-colors"
           >
             ← Back to Journal
           </Link>
-          <div className="flex items-center gap-3 mt-4">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <div className="flex items-center gap-4 mt-4">
+            <h1 className="text-3xl font-bold text-[#1E293B]">
               {trade.pair}
             </h1>
             <span
-              className={`px-3 py-1 text-sm font-medium rounded-full ${
+              className={`px-4 py-1.5 text-sm font-semibold rounded-xl ${
                 trade.positionType === "long"
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  ? "bg-[#D1FAE5] text-[#10B981] border border-[#10B981]/20"
+                  : "bg-[#FEE2E2] text-[#EF4444] border border-[#EF4444]/20"
               }`}
             >
               {trade.positionType.toUpperCase()}
             </span>
           </div>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
+          <p className="text-[#64748B] mt-2 font-medium">
             {formatDate(trade.tradeDate)} • {trade.marketType.replace("_", " ")}
           </p>
         </div>
@@ -65,7 +71,7 @@ export default async function TradeDetailPage({
           <form action={handleDelete}>
             <button
               type="submit"
-              className="px-4 py-2 text-red-600 hover:text-red-700 font-medium"
+              className="px-6 py-3 text-[#EF4444] hover:bg-[#FEE2E2] font-semibold rounded-xl transition-all"
             >
               Delete Trade
             </button>
@@ -74,79 +80,32 @@ export default async function TradeDetailPage({
       </div>
 
       {/* Trade Setup Details */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+      <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+        <h2 className="text-xl font-semibold text-[#1E293B] mb-8">
           Trade Setup
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-              Entry Price
-            </p>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">
-              {trade.entryPrice}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-              Stop Loss
-            </p>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">
-              {trade.stopLoss}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-              Take Profit
-            </p>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">
-              {trade.takeProfit}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-              RR Ratio
-            </p>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">
-              {trade.rrRatio}:1
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-              Position Size
-            </p>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">
-              {trade.positionSize}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-              Risk %
-            </p>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">
-              {trade.riskPercentage}%
-            </p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <DetailItem label="Entry Price" value={trade.entryPrice} />
+          <DetailItem label="Stop Loss" value={trade.stopLoss} />
+          <DetailItem label="Take Profit" value={trade.takeProfit} />
+          <DetailItem label="RR Ratio" value={`${trade.rrRatio}:1`} />
+          <DetailItem label="Position Size" value={trade.positionSize} />
+          <DetailItem label="Risk %" value={`${trade.riskPercentage}%`} />
 
           {trade.result && (
             <>
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                <p className="text-sm text-[#64748B] font-medium mb-2">
                   Result
                 </p>
                 <span
-                  className={`inline-block px-3 py-1 text-sm font-medium rounded-full ${
+                  className={`inline-block px-4 py-1.5 text-sm font-semibold rounded-xl ${
                     trade.result === "win"
-                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      ? "bg-[#D1FAE5] text-[#10B981] border border-[#10B981]/20"
                       : trade.result === "loss"
-                      ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                      : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                      ? "bg-[#FEE2E2] text-[#EF4444] border border-[#EF4444]/20"
+                      : "bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0]"
                   }`}
                 >
                   {trade.result.toUpperCase()}
@@ -154,16 +113,16 @@ export default async function TradeDetailPage({
               </div>
 
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                <p className="text-sm text-[#64748B] font-medium mb-2">
                   P&L
                 </p>
                 <p
-                  className={`text-lg font-semibold ${
+                  className={`text-xl font-bold ${
                     trade.profitLoss && parseFloat(trade.profitLoss) > 0
-                      ? "text-green-600 dark:text-green-400"
+                      ? "text-[#10B981]"
                       : trade.profitLoss && parseFloat(trade.profitLoss) < 0
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-slate-600"
+                      ? "text-[#EF4444]"
+                      : "text-[#1E293B]"
                   }`}
                 >
                   {trade.profitLoss
@@ -178,15 +137,15 @@ export default async function TradeDetailPage({
         </div>
 
         {tags && tags.length > 0 && (
-          <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+          <div className="mt-8 pt-8 border-t border-[#E2E8F0]">
+            <p className="text-sm text-[#64748B] font-medium mb-4">
               Tags
             </p>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                  className="px-4 py-1.5 text-sm font-semibold rounded-xl bg-blue-50 text-[#1E4ED8] border border-[#1E4ED8]/20"
                 >
                   {tag}
                 </span>
@@ -198,18 +157,18 @@ export default async function TradeDetailPage({
 
       {/* Screenshots */}
       {(trade.screenshotEntry || trade.screenshotExit) && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+        <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+          <h2 className="text-xl font-semibold text-[#1E293B] mb-8">
             Screenshots
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {trade.screenshotEntry && (
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                <p className="text-sm text-[#64748B] font-medium mb-4">
                   Entry Screenshot
                 </p>
-                <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#F8FAFC]">
                   <Image
                     src={trade.screenshotEntry}
                     alt="Entry screenshot"
@@ -222,10 +181,10 @@ export default async function TradeDetailPage({
 
             {trade.screenshotExit && (
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                <p className="text-sm text-[#64748B] font-medium mb-4">
                   Exit Screenshot
                 </p>
-                <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#F8FAFC]">
                   <Image
                     src={trade.screenshotExit}
                     alt="Exit screenshot"
@@ -241,42 +200,48 @@ export default async function TradeDetailPage({
 
       {/* Notes */}
       {(trade.tradingReason || trade.psychologyNotes || trade.evaluationNotes) && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+        <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+          <h2 className="text-xl font-semibold text-[#1E293B] mb-8">
             Notes
           </h2>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
             {trade.tradingReason && (
               <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                <p className="text-sm font-semibold text-[#64748B] mb-3 uppercase tracking-wider">
                   Trading Reason
                 </p>
-                <p className="text-slate-900 dark:text-white whitespace-pre-wrap">
-                  {trade.tradingReason}
-                </p>
+                <div className="p-6 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+                  <p className="text-[#1E293B] whitespace-pre-wrap leading-relaxed">
+                    {trade.tradingReason}
+                  </p>
+                </div>
               </div>
             )}
 
             {trade.psychologyNotes && (
               <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                <p className="text-sm font-semibold text-[#64748B] mb-3 uppercase tracking-wider">
                   Psychology Notes
                 </p>
-                <p className="text-slate-900 dark:text-white whitespace-pre-wrap">
-                  {trade.psychologyNotes}
-                </p>
+                <div className="p-6 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+                  <p className="text-[#1E293B] whitespace-pre-wrap leading-relaxed">
+                    {trade.psychologyNotes}
+                  </p>
+                </div>
               </div>
             )}
 
             {trade.evaluationNotes && (
               <div>
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                <p className="text-sm font-semibold text-[#64748B] mb-3 uppercase tracking-wider">
                   Evaluation Notes
                 </p>
-                <p className="text-slate-900 dark:text-white whitespace-pre-wrap">
-                  {trade.evaluationNotes}
-                </p>
+                <div className="p-6 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+                  <p className="text-[#1E293B] whitespace-pre-wrap leading-relaxed">
+                    {trade.evaluationNotes}
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -285,17 +250,17 @@ export default async function TradeDetailPage({
 
       {/* Close Trade Form */}
       {!trade.result && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+        <div className="bg-white rounded-[20px] border border-[#E2E8F0] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+          <h2 className="text-xl font-semibold text-[#1E293B] mb-8">
             Close Trade
           </h2>
 
-          <form action={handleCloseTrade} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <form action={handleCloseTrade} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label
                   htmlFor="result"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  className="block text-sm font-semibold text-[#1E293B] mb-2"
                 >
                   Result
                 </label>
@@ -303,7 +268,7 @@ export default async function TradeDetailPage({
                   id="result"
                   name="result"
                   required
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                  className="w-full h-12 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] transition-all"
                 >
                   <option value="win">Win</option>
                   <option value="loss">Loss</option>
@@ -314,7 +279,7 @@ export default async function TradeDetailPage({
               <div>
                 <label
                   htmlFor="profitLoss"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  className="block text-sm font-semibold text-[#1E293B] mb-2"
                 >
                   Profit/Loss ($)
                 </label>
@@ -325,14 +290,14 @@ export default async function TradeDetailPage({
                   step="0.01"
                   required
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                  className="w-full h-12 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] transition-all"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="screenshotExit"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  className="block text-sm font-semibold text-[#1E293B] mb-2"
                 >
                   Exit Screenshot URL
                 </label>
@@ -341,7 +306,7 @@ export default async function TradeDetailPage({
                   name="screenshotExit"
                   type="url"
                   placeholder="https://res.cloudinary.com/..."
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                  className="w-full h-12 px-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] transition-all"
                 />
               </div>
             </div>
@@ -349,7 +314,7 @@ export default async function TradeDetailPage({
             <div>
               <label
                 htmlFor="evaluationNotes"
-                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-semibold text-[#1E293B] mb-2"
               >
                 Evaluation Notes
               </label>
@@ -358,19 +323,32 @@ export default async function TradeDetailPage({
                 name="evaluationNotes"
                 rows={4}
                 placeholder="What went well? What could be improved?"
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
+                className="w-full p-4 border border-[#CBD5E1] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1E4ED8] focus:border-transparent bg-white text-[#1E293B] placeholder:text-[#64748B] transition-all"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              className="w-full h-14 bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-bold rounded-xl transition-all hover:scale-[1.01] shadow-lg hover:shadow-xl"
             >
               Close Trade
             </button>
           </form>
         </div>
       )}
+    </div>
+  );
+}
+
+function DetailItem({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <p className="text-sm text-[#64748B] font-medium mb-2">
+        {label}
+      </p>
+      <p className="text-lg font-bold text-[#1E293B]">
+        {value}
+      </p>
     </div>
   );
 }

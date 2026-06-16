@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-cache";
 import { db } from "@/lib/db";
 import { signals } from "@/lib/db/schema";
 import { and, desc, eq, ilike, or, sql, count } from "drizzle-orm";
@@ -13,7 +13,7 @@ export async function getSignals(filters?: {
   status?: SignalStatus | "all";
   search?: string;
 }) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -42,7 +42,7 @@ export async function getSignals(filters?: {
 }
 
 export async function getSignalById(signalId: string) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -59,7 +59,7 @@ export async function getSignalById(signalId: string) {
 }
 
 export async function createSignal(formData: FormData) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -109,7 +109,7 @@ export async function createSignal(formData: FormData) {
 }
 
 export async function updateSignalStatus(signalId: string, formData: FormData) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -154,7 +154,7 @@ export async function updateSignalStatus(signalId: string, formData: FormData) {
 }
 
 export async function getSignalStats() {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }

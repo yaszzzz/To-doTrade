@@ -1,13 +1,13 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-cache";
 import { db } from "@/lib/db";
 import { strategies } from "@/lib/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function getStrategies() {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -20,7 +20,7 @@ export async function getStrategies() {
 }
 
 export async function getStrategyById(strategyId: string) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -37,7 +37,7 @@ export async function getStrategyById(strategyId: string) {
 }
 
 export async function createStrategy(formData: FormData) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -75,7 +75,7 @@ export async function createStrategy(formData: FormData) {
 }
 
 export async function updateStrategy(strategyId: string, formData: FormData) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
@@ -122,7 +122,7 @@ export async function updateStrategy(strategyId: string, formData: FormData) {
 }
 
 export async function deleteStrategy(strategyId: string) {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }

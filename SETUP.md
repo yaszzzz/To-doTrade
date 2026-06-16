@@ -1,4 +1,4 @@
-# ToDoTrade Setup Guide
+# AxellTrade Setup Guide
 
 This guide will walk you through setting up ToDoTrade from scratch.
 
@@ -18,8 +18,8 @@ Before you begin, make sure you have:
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd todotrade
+git clone <repository-url>
+cd axelltrade
 
 # Install dependencies
 npm install
