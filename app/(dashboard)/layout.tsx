@@ -115,7 +115,7 @@ export default async function DashboardLayout({
           <div className="h-full px-8 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-[#1E293B]">Welcome back, {session.user?.name?.split(' ')[0]}</h2>
-              <p className="text-sm text-[#64748B]">Here's what's happening with your trading today</p>
+              <p className="text-sm text-[#64748B]">Heres whats happening with your trading today</p>
             </div>
             <div className="flex items-center gap-4">
               <Link

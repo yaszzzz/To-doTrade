@@ -48,6 +48,7 @@ export default async function HomePage() {
                 width={40}
                 height={40}
                 priority
+                unoptimized
                 className="h-10 w-10"
               />
               <span className="text-xl font-bold tracking-tight text-[#1E293B]">AxellTrade</span>

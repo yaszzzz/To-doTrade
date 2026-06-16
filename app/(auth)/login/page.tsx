@@ -46,6 +46,7 @@ export default function LoginPage() {
               alt="AxellTrade Logo"
               width={48}
               height={48}
+              unoptimized
               className="h-12 w-12"
             />
             <span className="text-2xl font-bold text-[#1E293B]">AxellTrade</span>

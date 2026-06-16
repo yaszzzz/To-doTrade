@@ -37,6 +37,7 @@ export default async function PublicBacktestDetailPage({
               alt="AxellTrade Logo"
               width={40} 
               height={40}
+              unoptimized
               className="h-10 w-10"
             />
             <span className="text-xl font-bold text-[#1E293B]">AxellTrade</span>
