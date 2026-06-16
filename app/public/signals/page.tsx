@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import {
   getPublicSignalStats,
   getPublicSignals,
@@ -19,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PublicLayout } from "@/components/public/public-layout";
 
 type PublicSignalsPageProps = {
   searchParams: Promise<{
@@ -54,24 +54,22 @@ export default async function PublicSignalsPage({
   ]);
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC]">
-      <PublicNav />
-
-      <section className="mx-auto max-w-[1440px] px-6 py-16 lg:px-8 lg:py-20">
+    <PublicLayout>
+      <main className="mx-auto max-w-[1440px] px-6 py-12 lg:px-8 lg:py-16">
         {/* Header */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-12">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-8">
           <div className="space-y-3">
-            <Badge variant="outline" className="w-fit border-blue-200 bg-blue-50 text-blue-700 font-bold">
+            <Badge variant="outline" className="w-fit font-bold">
               PUBLIC TRADING SIGNALS
             </Badge>
-            <h1 className="text-4xl font-extrabold tracking-tight text-[#1E293B] sm:text-5xl">
-              Explore Open Trading Signals
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Explore Trading Signals
             </h1>
-            <p className="max-w-2xl text-lg text-[#64748B]">
-              View public trading signals with analysis and performance data. Join our community to track your own signals.
+            <p className="max-w-2xl text-muted-foreground">
+              View public trading signals with analysis and performance data
             </p>
           </div>
-          <Button asChild size="lg" className="bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-bold shadow-lg hover:shadow-xl">
+          <Button asChild size="lg" className="font-bold">
             <Link href="/register">
               Get Started
             </Link>
@@ -79,7 +77,7 @@ export default async function PublicSignalsPage({
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatCard title="Total Signals" value={stats.totalSignals.toString()} icon="📊" />
           <StatCard title="Running" value={stats.runningSignals.toString()} icon="⏱️" />
           <StatCard title="Hit TP" value={stats.hitTpSignals.toString()} icon="✅" />
@@ -87,11 +85,11 @@ export default async function PublicSignalsPage({
         </div>
 
         {/* Search & Filter Form */}
-        <Card className="border-[#E2E8F0] shadow-lg mb-8">
+        <Card className="shadow-sm mb-8">
           <CardContent className="pt-6">
             <form className="flex flex-col gap-4 md:flex-row md:items-end">
               <div className="flex-1 space-y-2">
-                <Label htmlFor="search" className="text-sm font-semibold text-[#1E293B]">
+                <Label htmlFor="search" className="text-sm font-semibold">
                   Search
                 </Label>
                 <Input
@@ -99,18 +97,18 @@ export default async function PublicSignalsPage({
                   name="search"
                   defaultValue={search}
                   placeholder="BTCUSDT, ETH, analysis..."
-                  className="h-11 border-[#E2E8F0] focus-visible:ring-[#1E4ED8]"
+                  className="h-11"
                 />
               </div>
               <div className="space-y-2 md:w-48">
-                <Label htmlFor="status" className="text-sm font-semibold text-[#1E293B]">
+                <Label htmlFor="status" className="text-sm font-semibold">
                   Status
                 </Label>
                 <select
                   id="status"
                   name="status"
                   defaultValue={selectedStatus}
-                  className="flex h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E4ED8] focus-visible:ring-offset-2"
+                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="all">All Status</option>
                   <option value="running">Running</option>
@@ -119,7 +117,7 @@ export default async function PublicSignalsPage({
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
-              <Button type="submit" size="lg" className="bg-[#1E293B] hover:bg-[#0F172A] font-bold">
+              <Button type="submit" size="lg" className="font-bold">
                 Search
               </Button>
             </form>
@@ -127,29 +125,29 @@ export default async function PublicSignalsPage({
         </Card>
 
         {/* Signals Table */}
-        <Card className="border-[#E2E8F0] shadow-lg">
+        <Card className="shadow-sm">
           {signals.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#F8FAFC] hover:bg-[#F8FAFC]">
-                    <TableHead className="font-bold text-[#64748B]">Pair</TableHead>
-                    <TableHead className="text-right font-bold text-[#64748B]">Entry</TableHead>
-                    <TableHead className="text-right font-bold text-[#64748B]">Stop Loss</TableHead>
-                    <TableHead className="text-right font-bold text-[#64748B]">Take Profit</TableHead>
-                    <TableHead className="text-right font-bold text-[#64748B]">RR</TableHead>
-                    <TableHead className="text-right font-bold text-[#64748B]">Status</TableHead>
-                    <TableHead className="text-right font-bold text-[#64748B]">Date</TableHead>
-                    <TableHead className="text-right font-bold text-[#64748B]">Action</TableHead>
+                  <TableRow>
+                    <TableHead className="font-bold">Pair</TableHead>
+                    <TableHead className="text-right font-bold">Entry</TableHead>
+                    <TableHead className="text-right font-bold">Stop Loss</TableHead>
+                    <TableHead className="text-right font-bold">Take Profit</TableHead>
+                    <TableHead className="text-right font-bold">RR</TableHead>
+                    <TableHead className="text-right font-bold">Status</TableHead>
+                    <TableHead className="text-right font-bold">Date</TableHead>
+                    <TableHead className="text-right font-bold">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {signals.map((signal) => {
                     const config = statusConfig[signal.status];
                     return (
-                      <TableRow key={signal.id} className="hover:bg-[#F8FAFC]">
-                        <TableCell className="font-bold text-[#1E293B]">{signal.pair}</TableCell>
-                        <TableCell className="text-right text-[#64748B] font-medium">
+                      <TableRow key={signal.id}>
+                        <TableCell className="font-bold">{signal.pair}</TableCell>
+                        <TableCell className="text-right font-medium">
                           {signal.entry}
                         </TableCell>
                         <TableCell className="text-right font-semibold text-[#EF4444]">
@@ -158,7 +156,7 @@ export default async function PublicSignalsPage({
                         <TableCell className="text-right font-semibold text-[#10B981]">
                           {signal.takeProfit}
                         </TableCell>
-                        <TableCell className="text-right text-[#1E293B] font-bold">
+                        <TableCell className="text-right font-bold">
                           {signal.riskReward}:1
                         </TableCell>
                         <TableCell className="text-right">
@@ -167,11 +165,11 @@ export default async function PublicSignalsPage({
                             {statusLabels[signal.status]}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right text-[#64748B] font-medium">
+                        <TableCell className="text-right font-medium text-muted-foreground">
                           {formatDate(signal.signalDate)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button asChild variant="link" className="text-[#1E4ED8] hover:text-[#1D4ED8] font-bold p-0">
+                          <Button asChild variant="link" className="font-bold p-0">
                             <Link href={`/public/signals/${signal.id}`}>
                               View →
                             </Link>
@@ -188,46 +186,15 @@ export default async function PublicSignalsPage({
               <div className="flex flex-col items-center gap-4">
                 <div className="text-6xl">📭</div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-[#1E293B]">No signals found</h3>
-                  <p className="text-[#64748B]">Try adjusting your search filters.</p>
+                  <h3 className="text-lg font-bold">No signals found</h3>
+                  <p className="text-muted-foreground">Try adjusting your search filters.</p>
                 </div>
               </div>
             </CardContent>
           )}
         </Card>
-      </section>
-    </main>
-  );
-}
-
-function PublicNav() {
-  return (
-    <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-md shadow-sm">
-      <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
-          <Image
-            src="/logo.webp"
-            alt="AxellTrade Logo"
-            width={40} 
-            height={40}
-            unoptimized
-            className="h-10 w-10"
-          />
-          <span className="text-xl font-bold text-[#1E293B]">AxellTrade</span>
-        </Link>
-        <div className="flex items-center gap-6">
-          <Link href="/public/signals" className="text-sm font-bold text-[#1E4ED8]">
-            Signals
-          </Link>
-          <Link href="/public/backtests" className="text-sm font-medium text-[#64748B] hover:text-[#1E293B] transition-colors">
-            Backtests
-          </Link>
-          <Button asChild size="default" className="bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-semibold shadow-md">
-            <Link href="/login">Login</Link>
-          </Button>
-        </div>
-      </div>
-    </nav>
+      </main>
+    </PublicLayout>
   );
 }
 
@@ -235,7 +202,7 @@ function StatCard({
   title, 
   value, 
   icon,
-  valueColor = "text-[#1E293B]"
+  valueColor = "text-foreground"
 }: { 
   title: string
   value: string
@@ -243,7 +210,7 @@ function StatCard({
   valueColor?: string
 }) {
   return (
-    <Card className="border-[#E2E8F0] shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+    <Card className="shadow-sm hover:shadow-md transition-all">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-3">
           <span className="text-3xl">{icon}</span>

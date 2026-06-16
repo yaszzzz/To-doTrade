@@ -1,324 +1,226 @@
 import Link from "next/link";
-import Image from "next/image";
-import {
-  getPublicBacktestStrategies,
-  getPublicSignalStats,
-  getPublicSignals,
-} from "@/lib/actions/public.actions";
-import { formatDate } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { PublicVideoBackground } from "@/components/public/public-video-background";
+import { PublicNav } from "@/components/public/public-nav";
 
-const statusLabels = {
-  running: "Running",
-  hit_tp: "Hit TP",
-  hit_sl: "Hit SL",
-  cancelled: "Cancelled",
-} as const;
-
-const statusClasses = {
-  running: "bg-blue-50 text-[#1E4ED8] border border-[#1E4ED8]/20",
-  hit_tp: "bg-[#D1FAE5] text-[#10B981] border border-[#10B981]/20",
-  hit_sl: "bg-[#FEE2E2] text-[#EF4444] border border-[#EF4444]/20",
-  cancelled: "bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0]",
-} as const;
-
-export default async function HomePage() {
-  const [signals, stats, strategies] = await Promise.all([
-    getPublicSignals(),
-    getPublicSignalStats(),
-    getPublicBacktestStrategies(),
-  ]);
-
-  const latestSignals = signals.slice(0, 4);
-  const latestStrategies = strategies.slice(0, 3);
-
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#F8FAFC]">
-      {/* Header / Navigation */}
-      <header className="sticky top-0 left-0 right-0 z-50 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-md shadow-sm">
-        <div className="mx-auto max-w-[1440px] px-6 lg:px-8">
-          <nav className="flex h-[72px] items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
-              <Image 
-                src="/Image/logo.webp" 
-                alt="AxellTrade Logo" 
-                width={40}
-                height={40}
-                className="h-10 w-10"
-              />
-              <span className="text-xl font-bold tracking-tight text-[#1E293B]">AxellTrade</span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/public/signals"
-                className="hidden text-sm font-medium text-[#64748B] hover:text-[#1E293B] transition-colors sm:inline"
-              >
-                Public Signals
-              </Link>
-              <Link
-                href="/public/backtests"
-                className="hidden text-sm font-medium text-[#64748B] hover:text-[#1E293B] transition-colors sm:inline"
-              >
-                Backtest Data
-              </Link>
-              <Button asChild size="default" className="bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-semibold shadow-md">
-                <Link href="/login">Login</Link>
-              </Button>
-            </div>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen">
+      {/* Hero Section with Video Background */}
+      <div className="bg-background relative min-h-screen overflow-visible lg:overflow-hidden">
+        <div className="flex flex-col min-h-screen relative pt-32 pb-12 sm:py-32 md:pt-24 lg:pt-0 overflow-hidden">
+          
+        
+          {/* Navigation */}
+          <div className="relative z-20">
+            <PublicNav />
+          </div>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-[72px]">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white to-emerald-50/40" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(30,78,216,0.05),transparent_50%)]" />
-        <div className="relative mx-auto max-w-[1440px] px-6 py-16 lg:px-8 lg:py-28">
-          <div className="grid gap-16 lg:grid-cols-[1fr_420px] lg:items-start">
-            {/* Left Content */}
-            <div className="flex flex-col justify-center space-y-8">
-              <Badge variant="outline" className="w-fit border-blue-200 bg-blue-50/80 text-blue-700 hover:bg-blue-50 backdrop-blur-sm px-4 py-2">
-                <span className="relative flex h-2 w-2 mr-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-600 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-600"></span>
-                </span>
-                Trading journal, signals, backtest, dan portfolio tracker
-              </Badge>
-              
-              <div className="space-y-6">
-                <h1 className="text-4xl font-extrabold tracking-tight text-[#1E293B] sm:text-5xl lg:text-6xl lg:leading-[1.1]">
-                  Transparansi signal trading{" "}
-                  <span className="text-[#1E4ED8]">dan validasi strategi</span>{" "}
-                  berbasis data
+          {/* Header Content - Centered */}
+          <div className="flex-1 lg:flex-none flex flex-col justify-center md:justify-start md:pt-16 lg:pt-48 items-center space-y-8 lg:space-y-0 z-20 px-3 sm:px-4 lg:px-0 lg:max-w-[1400px] lg:mx-auto lg:w-full lg:mb-12 xl:mb-12 2xl:mb-12 3xl:mb-16">
+            <div className="flex flex-col items-center w-full text-center space-y-6 lg:space-y-8">
+              <div className="space-y-5 lg:space-y-6 max-w-3xl 3xl:max-w-5xl mx-auto px-2 lg:px-0">
+                {/* Badge/Announcement */}
+                <Link
+                  href="/public/signals"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border text-xs font-sans text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                >
+                  View Public Signals
+                  <span aria-hidden="true">&rarr;</span>
+                </Link>
+
+                {/* Main Headline */}
+                <h1 className="font-serif text-3xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl 2xl:text-7xl 3xl:text-8xl leading-[1.1] tracking-tight text-foreground">
+                  Track your trading journey{" "}
+                  <em className="not-italic text-muted-foreground/80">
+                    with confidence
+                  </em>
                 </h1>
-                <p className="text-lg leading-relaxed text-[#64748B] max-w-2xl">
-                  Lihat signal aktif, hasil signal sebelumnya, dan statistik backtest strategi tanpa perlu login.
-                  Area dashboard tetap aman untuk admin/user terdaftar.
+
+                {/* Subtitle */}
+                <p className="text-muted-foreground text-base lg:text-lg leading-relaxed font-sans max-w-xl mx-auto">
+                  Manage signals, backtest strategies, keep a journal, and analyze your performance. 
+                  All in one place.
                 </p>
               </div>
 
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <Button asChild size="lg" className="bg-[#1E4ED8] hover:bg-[#1D4ED8] text-white font-bold shadow-lg hover:shadow-xl transition-all">
-                  <Link href="/public/signals">
-                    Lihat Signal Public
+              {/* CTA Buttons */}
+              <div className="flex flex-col items-center gap-3 pt-2">
+                <Button
+                  asChild
+                  className="h-11 px-6 transition-colors"
+                  size="lg"
+                >
+                  <Link href="/login">
+                    <span className="text-inherit text-sm">
+                      Start your trial
+                    </span>
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="border-[#E2E8F0] hover:bg-[#F8FAFC] font-bold">
-                  <Link href="/public/backtests">
-                    Lihat Backtest
-                  </Link>
-                </Button>
+
+                <p className="text-muted-foreground text-xs font-sans">
+                  Free to start · No credit card required
+                </p>
               </div>
             </div>
-
-            {/* Right Content - Photo & Stats */}
-            <div className="relative z-10 flex flex-col gap-6">
-              {/* Photo Card */}
-              <Card className="group overflow-hidden border-[#E2E8F0] shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="p-4">
-                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#F8FAFC]">
-                    <Image
-                      src="/Image/fotosaya.webp"
-                      alt="Axell - AxellTrade Founder"
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      priority
-                      unoptimized
-                    />
-                  </div>
-                  <div className="mt-4 px-2 pb-2">
-                    <h3 className="text-xl font-bold text-[#1E293B]">Axell</h3>
-                    <p className="text-sm font-medium text-[#64748B]">Founder & Trader</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Stats Card */}
-              <Card className="border-[#E2E8F0] shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-[#64748B]">
-                    Performance Stats
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <StatMetric label="Total Signals" value={stats.totalSignals.toString()} />
-                    <StatMetric label="Running" value={stats.runningSignals.toString()} />
-                    <StatMetric label="Win Rate" value={`${stats.winRate.toFixed(1)}%`} color="profit" />
-                    <StatMetric label="Avg RR" value={`${stats.averageRR.toFixed(2)}R`} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </div>
+
+          {/* Bottom Spacing */}
+          <div className="mt-8 mb-8 md:mt-12 lg:mt-0 lg:mb-4 3xl:mb-20 h-20" />
         </div>
-      </section>
+      </div>
 
-      {/* Latest Signals Section */}
-      <section className="border-t border-[#E2E8F0] bg-white">
-        <div className="mx-auto max-w-[1440px] px-6 py-20 lg:px-8 lg:py-28">
-          <div className="mb-12 flex items-end justify-between gap-4">
-            <div className="space-y-4">
-              <h2 className="text-3xl font-extrabold text-[#1E293B] lg:text-4xl">Latest Signals</h2>
-              <p className="text-lg text-[#64748B]">
-                Signal trading terbaru dengan tracking hasil real-time
-              </p>
-            </div>
-            <Button asChild variant="ghost" className="group text-[#1E4ED8] hover:text-[#1D4ED8] font-bold">
-              <Link href="/public/signals">
-                View all signals
-                <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
-              </Link>
-            </Button>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {latestSignals.length > 0 ? (
-              latestSignals.map((signal) => (
-                <Link key={signal.id} href={`/public/signals/${signal.id}`}>
-                  <Card className="group h-full border-[#E2E8F0] hover:border-[#1E4ED8]/30 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <CardHeader>
-                      <div className="flex items-center justify-between mb-2">
-                        <CardTitle className="text-xl font-bold text-[#1E293B] group-hover:text-[#1E4ED8] transition-colors">
-                          {signal.pair}
-                        </CardTitle>
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] font-bold uppercase ${statusClasses[signal.status]}`}
-                        >
-                          {statusLabels[signal.status]}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-[#64748B]">Entry Price</span>
-                        <span className="font-bold text-[#1E293B]">{signal.entry}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-[#64748B]">Risk Reward</span>
-                        <span className="font-bold text-[#1E293B]">{signal.riskReward}:1</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))
-            ) : (
-              <Card className="border-dashed border-[#E2E8F0] bg-[#F8FAFC] md:col-span-2 lg:col-span-4">
-                <CardContent className="py-16 text-center">
-                  <p className="font-medium text-[#64748B]">Belum ada signal public.</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Backtest Section */}
-      <section className="border-t border-[#E2E8F0] bg-[#F8FAFC]">
-        <div className="mx-auto max-w-[1440px] px-6 py-20 lg:px-8 lg:py-28">
-          <div className="mb-12 flex items-end justify-between gap-4">
-            <div className="space-y-4">
-              <h2 className="text-3xl font-extrabold text-[#1E293B] lg:text-4xl">Backtest Strategies</h2>
-              <p className="text-lg text-[#64748B]">
-                Ringkasan strategi yang sudah diuji dengan sample trade
-              </p>
-            </div>
-            <Button asChild variant="ghost" className="group text-[#1E4ED8] hover:text-[#1D4ED8] font-bold">
-              <Link href="/public/backtests">
-                View all strategies
-                <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
-              </Link>
-            </Button>
+      {/* Features Section */}
+      <section className="bg-background py-20 lg:py-32">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16 lg:mb-24">
+            <h2 className="font-serif text-3xl lg:text-5xl text-foreground mb-4">
+              Everything you need to succeed
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Professional tools for serious traders
+            </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {latestStrategies.length > 0 ? (
-              latestStrategies.map((strategy) => {
-                const totalTrades = strategy.backtestTrades.length;
-                const wins = strategy.backtestTrades.filter((trade) => trade.result === "win").length;
-                const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
+            {/* Feature 1 - Signals */}
+            <div className="border border-border p-8 space-y-4 hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                📊
+              </div>
+              <h3 className="font-serif text-xl text-foreground">Trading Signals</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Share and track your trading signals with complete transparency. Monitor performance in real-time.
+              </p>
+              <Link
+                href="/public/signals"
+                className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                View Signals
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </div>
 
-                return (
-                  <Link key={strategy.id} href={`/public/backtests/${strategy.id}`}>
-                    <Card className="group h-full border-[#E2E8F0] hover:border-[#1E4ED8]/30 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                      <CardHeader className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs font-bold text-[#1E4ED8] bg-blue-50">
-                            {strategy.market}
-                          </Badge>
-                          <span className="h-1 w-1 rounded-full bg-[#E2E8F0]"></span>
-                          <Badge variant="secondary" className="text-xs font-bold text-[#1E4ED8] bg-blue-50">
-                            {strategy.timeframe}
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-2xl font-bold text-[#1E293B] group-hover:text-[#1E4ED8] transition-colors">
-                          {strategy.strategyName}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-2 text-base leading-relaxed">
-                          {strategy.description || "Belum ada deskripsi strategi."}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Separator className="mb-6 bg-[#E2E8F0]" />
-                        <div className="grid grid-cols-3 gap-4">
-                          <MetricMini label="Trades" value={totalTrades.toString()} />
-                          <MetricMini label="Win Rate" value={`${winRate.toFixed(0)}%`} />
-                          <MetricMini label="RR Target" value={strategy.rrTarget} />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })
-            ) : (
-              <Card className="border-dashed border-[#E2E8F0] bg-white md:col-span-2 lg:col-span-3">
-                <CardContent className="py-16 text-center">
-                  <p className="font-medium text-[#64748B]">Belum ada data backtest public.</p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Feature 2 - Backtests */}
+            <div className="border border-border p-8 space-y-4 hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                📈
+              </div>
+              <h3 className="font-serif text-xl text-foreground">Strategy Backtesting</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Validate your strategies with detailed backtest data. See what works before you trade.
+              </p>
+              <Link
+                href="/public/backtests"
+                className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                View Backtests
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </div>
+
+            {/* Feature 3 - Journal */}
+            <div className="border border-border p-8 space-y-4 hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                📝
+              </div>
+              <h3 className="font-serif text-xl text-foreground">Trading Journal</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Document every trade with screenshots, notes, and tags. Learn from your history.
+              </p>
+              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                Coming soon
+              </div>
+            </div>
+
+            {/* Feature 4 - Analytics */}
+            <div className="border border-border p-8 space-y-4 hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                📉
+              </div>
+              <h3 className="font-serif text-xl text-foreground">Advanced Analytics</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Deep insights into your trading performance with comprehensive metrics and charts.
+              </p>
+              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                Dashboard feature
+              </div>
+            </div>
+
+            {/* Feature 5 - Portfolio */}
+            <div className="border border-border p-8 space-y-4 hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                💼
+              </div>
+              <h3 className="font-serif text-xl text-foreground">Portfolio Tracking</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Monitor your capital allocation and track returns across multiple strategies.
+              </p>
+              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                Dashboard feature
+              </div>
+            </div>
+
+            {/* Feature 6 - Risk Management */}
+            <div className="border border-border p-8 space-y-4 hover:border-primary/30 transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-2xl">
+                🎯
+              </div>
+              <h3 className="font-serif text-xl text-foreground">Risk Management</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Calculate position sizes, track risk-reward ratios, and maintain discipline.
+              </p>
+              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                Built-in tools
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-background border-t border-border py-20 lg:py-32">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-8 text-center">
+          <div className="max-w-3xl mx-auto space-y-8">
+            <h2 className="font-serif text-3xl lg:text-5xl text-foreground">
+              Ready to level up your trading?
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Join traders who are serious about improving their performance
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              <Button asChild size="lg" className="text-base font-semibold px-8">
+                <Link href="/register">Get Started Free</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="text-base font-semibold px-8">
+                <Link href="/public/signals">Explore Public Data</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#E2E8F0] bg-white">
-        <div className="mx-auto max-w-[1440px] px-6 py-8 lg:px-8">
-          <div className="flex flex-col gap-4 text-sm text-[#64748B] sm:flex-row sm:items-center sm:justify-between">
-            <p>© {new Date().getFullYear()} AxellTrade. Data-driven trading workflow.</p>
-            <p>Last updated: {formatDate(new Date())}</p>
+      <footer className="bg-background border-t border-border py-8">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              © 2026 ToDoTrade. Built for traders.
+            </p>
+            <div className="flex gap-6">
+              <Link href="/public/signals" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Signals
+              </Link>
+              <Link href="/public/backtests" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Backtests
+              </Link>
+              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Login
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
-    </main>
-  );
-}
-
-function StatMetric({ label, value, color }: { label: string; value: string; color?: 'profit' | 'loss' }) {
-  return (
-    <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 transition-all hover:bg-white hover:shadow-md">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">{label}</p>
-      <p className={`mt-2 text-xl font-black ${
-        color === 'profit' ? 'text-[#10B981]' : 
-        color === 'loss' ? 'text-[#EF4444]' : 
-        'text-[#1E293B]'
-      }`}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function MetricMini({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col text-center">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">{label}</p>
-      <p className="mt-1 text-lg font-bold text-[#1E293B]">{value}</p>
     </div>
   );
 }

@@ -45,11 +45,13 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                if (localStorage.theme === 'dark' || ((!('theme' in localStorage) || localStorage.theme === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                // Default to dark mode
+                if (!localStorage.theme || localStorage.theme === 'dark' || localStorage.theme === 'system') {
                   document.documentElement.classList.add('dark');
                   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '${META_THEME_COLORS.dark}')
-                } else {
+                } else if (localStorage.theme === 'light') {
                   document.documentElement.classList.remove('dark');
+                  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '${META_THEME_COLORS.light}')
                 }
               } catch (_) {}
             `,
