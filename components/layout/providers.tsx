@@ -2,7 +2,7 @@
 import React from 'react';
 import { ThemeProvider } from 'next-themes';
 import { ActiveThemeProvider } from '../themes/active-theme';
-import { SessionProvider } from 'next-auth/react';
+import { ConditionalSessionProvider } from './conditional-session-provider';
 
 export default function Providers({
   activeThemeValue,
@@ -12,7 +12,7 @@ export default function Providers({
   children: React.ReactNode;
 }) {
   return (
-    <SessionProvider>
+    <ConditionalSessionProvider>
       <ThemeProvider
         attribute="class"
         defaultTheme="dark"
@@ -24,6 +24,6 @@ export default function Providers({
           {children}
         </ActiveThemeProvider>
       </ThemeProvider>
-    </SessionProvider>
+    </ConditionalSessionProvider>
   );
 }
