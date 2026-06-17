@@ -5,15 +5,15 @@ import { PublicNav } from "@/components/public/public-nav";
 export default function HomePage() {
   return (
     <div className="min-h-screen">
+         
+            <PublicNav />
+          
       {/* Hero Section with Video Background */}
       <div className="bg-background relative min-h-screen overflow-visible lg:overflow-hidden">
         <div className="flex flex-col min-h-screen relative pt-32 pb-12 sm:py-32 md:pt-24 lg:pt-0 overflow-hidden">
           
         
           {/* Navigation */}
-          <div className="relative z-20">
-            <PublicNav />
-          </div>
 
           {/* Header Content - Centered */}
           <div className="flex-1 lg:flex-none flex flex-col justify-center md:justify-start md:pt-16 lg:pt-48 items-center space-y-8 lg:space-y-0 z-20 px-3 sm:px-4 lg:px-0 lg:max-w-[1400px] lg:mx-auto lg:w-full lg:mb-12 xl:mb-12 2xl:mb-12 3xl:mb-16">

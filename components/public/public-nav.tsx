@@ -1,54 +1,72 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Home, Signal, BarChart3, LogIn } from "lucide-react";
+
+const navItems = [
+  { icon: Home, href: "#home", label: "Beranda" },
+  { icon: Signal, href: "/public/signals", label: "Signal" },
+  { icon: BarChart3, href: "/public/backtest", label: "Backtest" },
+  { icon: LogIn, href: "/login", label: "Login" }, // menuju halaman login
+];
 
 export function PublicNav() {
+  const [activeSection, setActiveSection] = useState("#home");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = navItems
+        .filter((item) => item.href.startsWith("#")) // abaikan /login
+        .map((item) => item.href.substring(1));
+
+      const current = sections.find((section) => {
+        const el = document.getElementById(section);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          return rect.top >= -100 && rect.top <= 300;
+        }
+        return false;
+      });
+
+      if (current) setActiveSection(`#${current}`);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 w-full">
-      <div className="relative py-4 px-6 lg:px-8 flex items-center justify-between bg-background/80 backdrop-blur-md border-b border-border/50">
-        {/* Logo - Left */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200"
-        >
-          <div className="w-6 h-6">
-           <Image src="/Image/logo.webp" alt="Axell Trade Logo" width={24} height={24} />
-          </div>
-          <span className="text-base font-medium">Axell Trade</span>
-        </Link>
+    <div className="fixed top-10 left-0 right-0 z-[100] flex justify-center px-6 pointer-events-none">
+      <nav className="flex items-center gap-2 p-2 bg-[#111111]/80 backdrop-blur-2xl border border-white/10 rounded-full shadow-2xl pointer-events-auto">
+        {navItems.map((item) => {
+          const isActive =
+            item.href.startsWith("#") && activeSection === item.href;
 
-        {/* Navigation Links - Center */}
-        <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
-          <Link
-            href="/public/signals"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Signals
-          </Link>
-          <Link
-            href="/public/backtests"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Backtests
-          </Link>
-          <Link
-            href="#features"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Features
-          </Link>
-        </div>
+          return (
+            <a
+              key={item.href}
+              href={item.href}
+              className={`relative w-12 h-12 flex items-center justify-center rounded-full transition-all duration-500 group ${
+                isActive
+                  ? "bg-white text-black shadow-lg shadow-white/10"
+                  : "text-gray-500 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <item.icon
+                className={`w-5 h-5 transition-transform duration-500 ${
+                  isActive ? "scale-110" : "group-hover:scale-110"
+                }`}
+              />
 
-        {/* Sign In - Right */}
-        <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors"
-          >
-            Login
-          </Link>
-        </div>
-      </div>
-    </nav>
+              <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black border border-white/10 rounded-lg text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none uppercase tracking-widest whitespace-nowrap">
+                {item.label}
+              </div>
+            </a>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
